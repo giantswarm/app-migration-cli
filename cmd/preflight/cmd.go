@@ -24,11 +24,11 @@ const (
 
   // CommandLong documents the command in full length
   CommandLong = `Check if the source MC has apps which can be migrated. Checks
-  if the destination MC has the neccessary resources ready to allow running the apps.
+  if the destination MC has the neccessary resources ready to allow running the apps. It operates read-only.
 
   Check a migration from gauss to golem:
 
-  ./app-migration-cli preflight -s gauss -d golem
+  ./app-migration-cli preflight -s gauss -d golem -n wc1
   `
 )
 
@@ -106,15 +106,19 @@ func (c *Command) execute() error {
   }
   mcs.WcName = flags.wcName
 
-  color.Green("Access to both MCs successfull")
+  color.Green("Access to both MCs validated")
+
+  health, err := mcs.SrcMC.GetWCHealth(mcs.WcName)
+  if err != nil {
+    return microerror.Mask(err)
+  }
+  color.Green("WorkloadCluster State is healthy: %s", health)
 
   apps, err := apps.GetAppCRs(mcs.SrcMC.KubernetesClient, mcs.WcName)
   if err != nil {
     return microerror.Mask(err)
   }
-
-  print(apps)
-
+  color.Yellow(". Found %d apps for migration", len(apps))
 
   return nil
 }
