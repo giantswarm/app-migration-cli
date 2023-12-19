@@ -17,16 +17,21 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	v1 "k8s.io/api/core/v1"
 
 	gsv1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
-	// clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 
 	chart "github.com/giantswarm/apiextensions-application/api/v1alpha1"
 )
 
+const finalizer string = "giantswarm.io/app-migration-cli"
+
 var (
   scheme = runtime.NewScheme()
 
+  // wc in any of these "conditon" are considered healthy
+  // check `kubectl gs get cluster <name>`
   validClusterStates = []string{
     "Created",
     "Updating",
@@ -34,10 +39,8 @@ var (
   }
 )
 
-
-
 func init() {
-  //	_ = clientgoscheme.AddToScheme(scheme)
+  _ = clientgoscheme.AddToScheme(scheme)
   _ = capi.AddToScheme(scheme)
  	_ = gsv1alpha3.AddToScheme(scheme)
   //	_ = kubeadmv1beta1.AddToScheme(scheme)
@@ -135,6 +138,7 @@ func (c *ManagementCluster) getCluster(ctx context.Context, clusterName string) 
   return &objList.Items[0], nil
 }
 
+// todo: migrate to single cluster login
 func Login(srcMC string, dstMc string) (*Cluster, error) {
   srcMcClient, _, err := loginOrReuseKubeconfig([]string{srcMC})
   if err != nil {
@@ -194,47 +198,98 @@ func getK8sClientFromKubeconfig(contextName string) (client.Client, kubernetes.I
       CurrentContext: contextName,
     }).ClientConfig()
 
-    if err != nil {
-      return nil, nil, microerror.Mask(err)
-    }
-
-    clientset, err := kubernetes.NewForConfig(config)
-    if err != nil {
-      return nil, nil, microerror.Mask(err)
-    }
-    v, err := clientset.ServerVersion()
-    if err != nil {
-      return nil, nil, microerror.Mask(err)
-    }
-    fmt.Printf("Connected to %s, k8s server version %s\n", contextName, v.String())
-
-    ctrlClient, err := client.New(config, client.Options{Scheme: scheme})
-    if err != nil {
-      return nil, nil, microerror.Mask(err)
-    }
-
-    return ctrlClient, clientset, nil
+  if err != nil {
+    return nil, nil, microerror.Mask(err)
   }
 
-  // LoginIntoCluster will login into cluster by executing opsctl login command
-  func loginIntoCLuster(cluster []string) error {
-    args := append([]string{"login", "--no-cache"}, cluster...)
-    c := exec.Command("opsctl", args...)
+  clientset, err := kubernetes.NewForConfig(config)
+  if err != nil {
+    return nil, nil, microerror.Mask(err)
+  }
+  v, err := clientset.ServerVersion()
+  if err != nil {
+    return nil, nil, microerror.Mask(err)
+  }
+  fmt.Printf("Connected to %s, k8s server version %s\n", contextName, v.String())
 
-    c.Stderr = os.Stderr
-    c.Stdin = os.Stdin
+  ctrlClient, err := client.New(config, client.Options{Scheme: scheme})
+  if err != nil {
+    return nil, nil, microerror.Mask(err)
+  }
 
-    err := c.Run()
+  return ctrlClient, clientset, nil
+}
+
+// LoginIntoCluster will login into cluster by executing opsctl login command
+func loginIntoCLuster(cluster []string) error {
+  args := append([]string{"login", "--no-cache"}, cluster...)
+  c := exec.Command("opsctl", args...)
+
+  c.Stderr = os.Stderr
+  c.Stdin = os.Stdin
+
+  err := c.Run()
+  if err != nil {
+    return microerror.Mask(err)
+  }
+  return nil
+}
+
+func contextNameFromCluster(cluster []string) string {
+  if len(cluster) == 1 {
+    return fmt.Sprintf("gs-%s", cluster[0])
+  } else {
+    return fmt.Sprintf("gs-%s-%s-clientcert", cluster[0], cluster[1])
+  }
+}
+
+func (c *ManagementCluster) RemoveFinalizer() error {
+  var ns v1.Namespace
+
+  ctx := context.TODO()
+
+  //selector := client.MatchingFields{"metadata.name": namespace}
+  err := c.KubernetesClient.Get(ctx, client.ObjectKey{Name: c.Namespace}, &ns)
+  if err != nil {
+    return microerror.Mask(err)
+  }
+
+  finalizers := ns.GetFinalizers()
+  if slices.Contains(finalizers, finalizer) {
+    index := slices.Index(finalizers, finalizer)
+
+    ns.SetFinalizers(append(finalizers[:index], finalizers[index+1:]...))
+
+    err = c.KubernetesClient.Update(ctx, &ns)
     if err != nil {
       return microerror.Mask(err)
     }
-    return nil
   }
 
-  func contextNameFromCluster(cluster []string) string {
-    if len(cluster) == 1 {
-      return fmt.Sprintf("gs-%s", cluster[0])
-    } else {
-      return fmt.Sprintf("gs-%s-%s-clientcert", cluster[0], cluster[1])
+  return nil
+}
+
+func (c *ManagementCluster) SetFinalizer() error {
+  var ns v1.Namespace
+
+  ctx := context.TODO()
+
+  //selector := client.MatchingFields{"metadata.name": namespace}
+  err := c.KubernetesClient.Get(ctx, client.ObjectKey{Name: c.Namespace}, &ns)
+  if err != nil {
+    return microerror.Mask(err)
+  }
+
+  finalizers := ns.GetFinalizers()
+  if ! slices.Contains(finalizers, finalizer) {
+
+    ns.SetFinalizers(append(finalizers, finalizer))
+
+    err = c.KubernetesClient.Update(ctx, &ns)
+    if err != nil {
+      return microerror.Mask(err)
     }
   }
+
+  return nil
+}

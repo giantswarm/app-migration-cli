@@ -30,6 +30,7 @@ func GetAppCRs(k8sClient client.Client, clusterName string) ([]app.App, error) {
   return filteredApps, nil
 }
 
+// blacklist certain apps for migration
 func filterAppCRs(allApps []app.App) (filteredApps []app.App) {
   appLoop:
     for _,application := range allApps {

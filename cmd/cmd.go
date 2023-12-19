@@ -3,6 +3,7 @@ package cmd
 import (
 
   "github.com/giantswarm/app-migration-cli/cmd/preflight"
+  "github.com/giantswarm/app-migration-cli/cmd/prepare"
 
   "github.com/giantswarm/microerror"
   "github.com/giantswarm/micrologger"
@@ -64,7 +65,22 @@ func New(config Config) (*Command, error) {
     }
   }
 
+  var prepareCommand *prepare.Command
+  {
+    c := prepare.Config{
+      MainCommand: newCommand.cobraCommand,
+      Logger: config.Logger,
+    }
+
+    prepareCommand, err = prepare.New(c)
+    if err != nil {
+      return nil, microerror.Mask(err)
+    }
+  }
+
+
   newCommand.cobraCommand.AddCommand(preflightCommand.CobraCommand())
+  newCommand.cobraCommand.AddCommand(prepareCommand.CobraCommand())
 
   return newCommand, nil
 }

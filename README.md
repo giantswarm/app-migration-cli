@@ -13,17 +13,20 @@ are scheduled after a successfull infrastructure migration.
 1. preflight - *readonly checks if a migration is possible*
     * validate access to both mcs
     * check WC condition/health (only "Created" is allowed)
+    * :bulp: check `app` `extraConfig` config for a working reorganziation
+    * ...
 
 2. prepare - *writing all resources to disk*
     * putting a finalizier on the NS to prevent its deletion
     * writing all `apps` to disk
     * writing all dependend `cm`/`secrets` to disk
 
-*...Infrastructure migration should happen here...*
+*...[Infrastructure migration](https://github.com/giantswarm/capi-migration-cli) should happen here...*
 
 3. apply - *applying the resources to the new MC*
     * applying the dumped resources to the new MC
     * removing the ns/finalizier
+    * ...
 
 ## Recomendation to run the tool
 To ensure there are no interference with kubeconfigs that the tool uses, create a new temporary file for kubeconfig.
