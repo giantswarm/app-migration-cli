@@ -303,20 +303,3 @@ func (c *ManagementCluster) SetFinalizerOnNamespace() error {
 
   return nil
 }
-
-func (c *Cluster) FetchApps() ([]apps.App, error) {
-  objList := &apps.AppList{}
-  ctx := context.TODO()
-
-  // todo: not possible to filter on "spec.catalog" bc/ cached list not indexed?
-  selector := client.MatchingFields{"metadata.namespace": c.WcName}
-  //selector := client.MatchingLabels{"app.kubernetes.io/name"
-  err := c.SrcMC.KubernetesClient.List(ctx, objList, selector)
-  if err != nil {
-    return nil, microerror.Mask(err)
-  }
-
-  return objList.Items, nil
-}
-
-

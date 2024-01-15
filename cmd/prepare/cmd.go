@@ -6,6 +6,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/giantswarm/app-migration-cli/pkg/cluster"
+	"github.com/giantswarm/app-migration-cli/pkg/apps"
+
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
 )
@@ -24,11 +26,11 @@ const (
   // CommandLong documents the command in full length
   CommandLong = `In the preparation phase the apps and additional config will
 be written to disk and finalizers will protect the
-namespace from deletion thourgh capi-migration (enabled by default)
+namespace from deletion by the capi-migration (enabled by default)
 
 Run a migration from gauss to golem:
 
-  ./app-migration-cli prepare -s gauss -d golem -n wc1
+  ./app-migration-cli prepare -s gauss -d golem -n wc1 -o org-foobar
   `
 )
 
@@ -116,7 +118,7 @@ func (c *Command) execute() error {
     color.Yellow("Finalizer set on NS: %s-%s", mcs.SrcMC.Name, mcs.SrcMC.Namespace)
   }
 
-  mcs.Apps, err = mcs.FetchApps()
+  mcs.Apps, err = apps.GetAppCRs(mcs.SrcMC.KubernetesClient, mcs.WcName)
   if err != nil {
     return microerror.Mask(err)
   }
