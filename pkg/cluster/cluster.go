@@ -11,6 +11,7 @@ import (
 	"golang.org/x/net/context"
 
 //  "k8s.io/api/core/v1"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
@@ -23,6 +24,8 @@ import (
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 
 	chart "github.com/giantswarm/apiextensions-application/api/v1alpha1"
+  apps "github.com/giantswarm/apiextensions-application/api/v1alpha1"
+
 )
 
 const finalizer string = "giantswarm.io/app-migration-cli"
@@ -49,6 +52,7 @@ func init() {
 
 type Cluster struct {
   WcName string
+  Apps []apps.App
 
   SrcMC *ManagementCluster
   DstMC *ManagementCluster
@@ -59,6 +63,13 @@ type ManagementCluster struct {
   Namespace string
 
   KubernetesClient client.Client
+}
+
+type AppExtraConfig struct {
+  Kind      string
+  Name      string
+  Namespace string
+  Yaml      []byte
 }
 
 func (c *ManagementCluster) GetWCHealth(clusterName string) (string, error) {
@@ -243,12 +254,11 @@ func contextNameFromCluster(cluster []string) string {
   }
 }
 
-func (c *ManagementCluster) RemoveFinalizer() error {
+func (c *ManagementCluster) RemoveFinalizerOnNamespace() error {
   var ns v1.Namespace
 
   ctx := context.TODO()
 
-  //selector := client.MatchingFields{"metadata.name": namespace}
   err := c.KubernetesClient.Get(ctx, client.ObjectKey{Name: c.Namespace}, &ns)
   if err != nil {
     return microerror.Mask(err)
@@ -269,12 +279,11 @@ func (c *ManagementCluster) RemoveFinalizer() error {
   return nil
 }
 
-func (c *ManagementCluster) SetFinalizer() error {
+func (c *ManagementCluster) SetFinalizerOnNamespace() error {
   var ns v1.Namespace
 
   ctx := context.TODO()
 
-  //selector := client.MatchingFields{"metadata.name": namespace}
   err := c.KubernetesClient.Get(ctx, client.ObjectKey{Name: c.Namespace}, &ns)
   if err != nil {
     return microerror.Mask(err)
@@ -293,3 +302,20 @@ func (c *ManagementCluster) SetFinalizer() error {
 
   return nil
 }
+
+func (c *Cluster) FetchApps() ([]apps.App, error) {
+  objList := &apps.AppList{}
+  ctx := context.TODO()
+
+  // todo: not possible to filter on "spec.catalog" bc/ cached list not indexed?
+  selector := client.MatchingFields{"metadata.namespace": c.WcName}
+  //selector := client.MatchingLabels{"app.kubernetes.io/name"
+  err := c.SrcMC.KubernetesClient.List(ctx, objList, selector)
+  if err != nil {
+    return nil, microerror.Mask(err)
+  }
+
+  return objList.Items, nil
+}
+
+

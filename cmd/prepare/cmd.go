@@ -1,12 +1,13 @@
 package prepare
 
 import (
+	//	"github.com/fatih/color"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
+	"github.com/giantswarm/app-migration-cli/pkg/cluster"
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
-	"github.com/giantswarm/app-migration-cli/pkg/cluster"
 )
 
 var (
@@ -71,7 +72,7 @@ func New(config Config) (*Command, error) {
   newCommand.mainCommand.Flags().StringVarP(&flags.srcMC, "source", "s", "", "Name of the source MC")
   newCommand.mainCommand.Flags().StringVarP(&flags.dstMC, "destination", "d", "", "Name of the destination MC")
   newCommand.mainCommand.Flags().StringVarP(&flags.wcName, "wc-name", "n", "", "Name of the WC to migrate")
-  newCommand.mainCommand.Flags().BoolVarP(&flags.finalizer, "no-finalizer", "f", false, "Apply no finalizers to the source namespace/cluster")
+  newCommand.mainCommand.Flags().BoolVarP(&flags.noFinalizer, "no-finalizer", "f", false, "Apply no finalizers to the source namespace/cluster")
 
   return newCommand, nil
 }
@@ -105,15 +106,31 @@ func (c *Command) execute() error {
   mcs.WcName = flags.wcName
   mcs.SrcMC.Namespace = flags.wcName
 
-  err = mcs.SrcMC.SetFinalizer()
+  if ! flags.noFinalizer {
+    err = mcs.SrcMC.SetFinalizerOnNamespace()
+    if err != nil {
+      return microerror.Mask(err)
+    }
+    color.Yellow("Finalizer set on NS: %s-%s", mcs.SrcMC.Name, mcs.SrcMC.Namespace)
+  }
+
+  mcs.Apps, err = mcs.FetchApps()
   if err != nil {
     return microerror.Mask(err)
   }
 
-  mcs.SrcMC.RemoveFinalizer()
+  err = mcs.DumpApps()
   if err != nil {
     return microerror.Mask(err)
   }
+
+  // todo: remove after successfull migration
+  //if ! flags.noFinalizer {
+  //  mcs.SrcMC.RemoveFinalizerOnNamespace()
+  //  if err != nil {
+  //    return microerror.Mask(err)
+  //  }
+ // }
 
 
   return nil

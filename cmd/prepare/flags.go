@@ -9,7 +9,7 @@ type Flags struct {
 	srcMC  string
 	dstMC  string
   wcName string
-  finalizer bool
+  noFinalizer bool
 }
 
 func (f *Flags) Validate() error {
