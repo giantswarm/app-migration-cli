@@ -63,13 +63,19 @@ func (c *Cluster) DumpApps() error {
 			Name:         application.Spec.Name,
 			Namespace:    application.Spec.Namespace,
 			Version:      application.Spec.Version,
-      Organization: organizationFromNamespace(c.WcName),
+      ExtraLabels:  application.GetLabels(),
+      ExtraAnnotations: application.GetAnnotations(),
+      Organization: organizationFromNamespace(c.OrgNamespace),
 		}
+
+    fmt.Printf("org: %s", newApp.Namespace)
 
     // make sure we trim the clustername if it somehow was prefixed on the app
     metadataName := strings.TrimLeft(application.GetName(), c.WcName)
     // now prefix our app with the cluster
     newApp.AppName = fmt.Sprintf("%s-%s", c.WcName, metadataName)
+
+    // todo: secret missing?
     if application.Spec.Config.ConfigMap.Name == fmt.Sprintf("%s-cluster-values", c.WcName) {
       newApp.UseClusterValuesConfig = true
     }
@@ -80,7 +86,7 @@ func (c *Cluster) DumpApps() error {
         obj, err := migrateAppConfigObject(
             c.SrcMC.KubernetesClient,
             strings.ToLower(extraConfig.Kind),
-            c.WcName, 
+            c.WcName,
             extraConfig.Name, 
             extraConfig.Namespace, 
             newApp.Organization)
@@ -240,6 +246,8 @@ func migrateAppConfigObject(k8sClient client.Client, resourceKind string, cluste
         ObjectMeta: metav1.ObjectMeta{
           Name: config.Name,
           Namespace: config.Namespace,
+          Labels: secret.GetLabels(),
+          Annotations: secret.GetAnnotations(),
         },
         Data: secret.Data,
       }
@@ -271,6 +279,8 @@ func migrateAppConfigObject(k8sClient client.Client, resourceKind string, cluste
         ObjectMeta: metav1.ObjectMeta{
           Name: config.Name,
           Namespace: config.Namespace,
+          Labels: cm.GetLabels(),
+          Annotations: cm.GetAnnotations(),
         },
         Data: cm.Data,
       }
