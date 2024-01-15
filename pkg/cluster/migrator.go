@@ -23,7 +23,7 @@ func (c *Cluster) DumpApps() error {
   var numberOfAppsToMigrate int
 
   // we write the apps to a yaml-file, which gets applied later
-	f, err := os.OpenFile(nonDefaultAppYamlFile(c.SrcMC.Name), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0640)
+	f, err := os.OpenFile(nonDefaultAppYamlFile(c.WcName), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0640)
 
 	if err != nil {
 		return microerror.Mask(err)
@@ -133,7 +133,7 @@ func (c *Cluster) DumpApps() error {
 
     // apps on the WC should go to the org namespace
     if application.Spec.KubeConfig.InCluster == false {
-      newApp.Organization = organizationFromNamespace(c.SrcMC.Namespace)
+      newApp.Organization = organizationFromNamespace(c.OrgNamespace)
     }
 
     if application.Spec.UserConfig.ConfigMap.Name != "" {

@@ -72,7 +72,8 @@ func New(config Config) (*Command, error) {
   newCommand.mainCommand.Flags().StringVarP(&flags.srcMC, "source", "s", "", "Name of the source MC")
   newCommand.mainCommand.Flags().StringVarP(&flags.dstMC, "destination", "d", "", "Name of the destination MC")
   newCommand.mainCommand.Flags().StringVarP(&flags.wcName, "wc-name", "n", "", "Name of the WC to migrate")
-  newCommand.mainCommand.Flags().BoolVarP(&flags.noFinalizer, "no-finalizer", "f", false, "Apply no finalizers to the source namespace/cluster")
+  newCommand.mainCommand.Flags().StringVarP(&flags.orgNamespace, "org-name", "o", "", "Name of organization Namespace in capi, eg. org-foobar")
+  newCommand.mainCommand.Flags().BoolVarP(&flags.noFinalizer, "no-finalizer", "f", false, "Apply no finalizers to the source namespace/cluster. This might result in the deletion of the ns")
 
   return newCommand, nil
 }
@@ -105,6 +106,7 @@ func (c *Command) execute() error {
   }
   mcs.WcName = flags.wcName
   mcs.SrcMC.Namespace = flags.wcName
+  mcs.OrgNamespace = flags.orgNamespace
 
   if ! flags.noFinalizer {
     err = mcs.SrcMC.SetFinalizerOnNamespace()

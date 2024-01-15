@@ -10,6 +10,7 @@ type Flags struct {
 	dstMC  string
   wcName string
   noFinalizer bool
+  orgNamespace string
 }
 
 func (f *Flags) Validate() error {
@@ -24,6 +25,11 @@ func (f *Flags) Validate() error {
 	if f.wcName == "" {
 		return microerror.Maskf(invalidFlagsError, "WorkloadClusterName must not be empty")
 	}
+
+	if f.orgNamespace == "" {
+		return microerror.Maskf(invalidFlagsError, "OrgNamespace must not be empty")
+	}
+
 
 	return nil
 }

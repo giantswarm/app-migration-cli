@@ -51,8 +51,9 @@ func init() {
 }
 
 type Cluster struct {
-  WcName string
-  Apps []apps.App
+  WcName       string
+  OrgNamespace string
+  Apps         []apps.App
 
   SrcMC *ManagementCluster
   DstMC *ManagementCluster
