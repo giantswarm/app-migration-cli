@@ -1,22 +1,22 @@
 package cluster
 
 import (
-	"github.com/giantswarm/microerror"
+  "github.com/giantswarm/microerror"
 )
 
 var clusterNotFound = &microerror.Error{
-	Kind: "clusterNotFound",
+  Kind: "clusterNotFound",
 }
 
 var clusterNameNotFound = &microerror.Error{
-	Kind: "clusterNameNotFound",
+  Kind: "clusterNameNotFound",
 }
 
 var clusterUnhealthy = &microerror.Error{
-	Kind: "clusterUnhealthy",
+  Kind: "clusterUnhealthy",
 }
 
 var migrationFileCorrupted = &microerror.Error{
-	Kind: "migrationFileCorrupted",
+  Kind: "migrationFileCorrupted",
 }
 

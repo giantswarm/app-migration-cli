@@ -3,12 +3,12 @@ package apply
 import (
   "time"
 
-	"github.com/fatih/color"
-	"github.com/spf13/cobra"
+  "github.com/fatih/color"
+  "github.com/spf13/cobra"
 
-	"github.com/giantswarm/app-migration-cli/pkg/cluster"
-	"github.com/giantswarm/microerror"
-	"github.com/giantswarm/micrologger"
+  "github.com/giantswarm/app-migration-cli/pkg/cluster"
+  "github.com/giantswarm/microerror"
+  "github.com/giantswarm/micrologger"
 
   "github.com/giantswarm/backoff"
 )
@@ -26,9 +26,9 @@ const (
 
   // CommandLong documents the command in full length
   CommandLong = `In the apply phase the apps and additional config will
-be read from disk and applied to the newly created capi WC
+  be read from disk and applied to the newly created capi WC
 
-Run a migration from gauss to golem:
+  Run a migration from gauss to golem:
 
   ./app-migration-cli apply -f test25-apps.yaml -d golem -n wc1
   `

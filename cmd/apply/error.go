@@ -1,15 +1,13 @@
 package apply
 
 import (
-	"github.com/giantswarm/microerror"
+  "github.com/giantswarm/microerror"
 )
 
 var invalidFlagsError = &microerror.Error{
-	Kind: "invalidFlagsError",
+  Kind: "invalidFlagsError",
 }
 
 var invalidConfigError = &microerror.Error{
-	Kind: "invalidConfigError",
+  Kind: "invalidConfigError",
 }
-
-

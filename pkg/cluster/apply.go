@@ -21,11 +21,11 @@ import (
 func (c *Cluster) ApplyCAPIApps() error {
   // we skip the app apply if the file is empty
   fileInfo, err := os.Stat(nonDefaultAppYamlFile(c.WcName))
-	if err != nil {
-		return microerror.Mask(err)
-	}
-	// Check if the file size is 0
-	if fileInfo.Size() == 0 {
+  if err != nil {
+    return microerror.Mask(err)
+  }
+  // Check if the file size is 0
+  if fileInfo.Size() == 0 {
     return microerror.Maskf(migrationFileCorrupted, "Migration File is empty. Nothing to migrate") 
   }
 
@@ -87,39 +87,39 @@ func (c *Cluster) ApplyCAPIApps() error {
 
 func checkIfObjectExists(k8s client.Client, nameSpace string, name string, resourceKind string) (bool, error) {
   switch resourceKind {
-    case "secret":
-      var secret v1.Secret
-      err := k8s.Get(context.TODO(), client.ObjectKey{
-          Name: name,
-          Namespace: nameSpace,
-        },
-        &secret)
-        
-      if err != nil {
-        if errors.IsNotFound(err) {
-          return false, nil
-        }
-        return false, err
-      }
-      return true, nil
+  case "secret":
+    var secret v1.Secret
+    err := k8s.Get(context.TODO(), client.ObjectKey{
+      Name: name,
+      Namespace: nameSpace,
+    },
+    &secret)
 
-    case "configmap":
-      var cm v1.ConfigMap
-      err := k8s.Get(context.TODO(), client.ObjectKey{
-          Name: name,
-          Namespace: nameSpace,
-        },
-        &cm)
-        
-      if err != nil {
-        if errors.IsNotFound(err) {
-          return false, nil
-        }
-        return false, err
+    if err != nil {
+      if errors.IsNotFound(err) {
+        return false, nil
       }
-      return true, nil
+      return false, err
+    }
+    return true, nil
 
-    default:
-      return false, fmt.Errorf("unsupported resource kind: %s", resourceKind)
+  case "configmap":
+    var cm v1.ConfigMap
+    err := k8s.Get(context.TODO(), client.ObjectKey{
+      Name: name,
+      Namespace: nameSpace,
+    },
+    &cm)
+
+    if err != nil {
+      if errors.IsNotFound(err) {
+        return false, nil
+      }
+      return false, err
+    }
+    return true, nil
+
+  default:
+    return false, fmt.Errorf("unsupported resource kind: %s", resourceKind)
   }
 }
