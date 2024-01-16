@@ -16,4 +16,7 @@ var clusterUnhealthy = &microerror.Error{
 	Kind: "clusterUnhealthy",
 }
 
+var migrationFileCorrupted = &microerror.Error{
+	Kind: "migrationFileCorrupted",
+}
 

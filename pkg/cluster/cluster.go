@@ -8,8 +8,9 @@ import (
   "slices"
 
 	"github.com/giantswarm/microerror"
-	"golang.org/x/net/context"
 
+	"golang.org/x/net/context"
+  "github.com/giantswarm/backoff"
 //  "k8s.io/api/core/v1"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -57,6 +58,8 @@ type Cluster struct {
 
   SrcMC *ManagementCluster
   DstMC *ManagementCluster
+
+  BackOff backoff.BackOff
 }
 
 type ManagementCluster struct {
@@ -73,6 +76,7 @@ type AppExtraConfig struct {
   Yaml      []byte
 }
 
+// todo: access clusterName by *Cluster
 func (c *ManagementCluster) GetWCHealth(clusterName string) (string, error) {
 
   ctx := context.TODO()
@@ -140,11 +144,11 @@ func (c *ManagementCluster) getCluster(ctx context.Context, clusterName string) 
   }
 
   if len(objList.Items) == 0 {
-    return nil, microerror.Maskf(clusterNotFound, "Cluster not found for %s", clusterName)
+    return nil, microerror.Maskf(clusterNotFound, "Cluster not found for %s-%s", c.Name, clusterName)
   }
 
   if len(objList.Items) > 1 {
-    return nil, microerror.Maskf(clusterNotFound, "More than one Cluster found with name %s", clusterName)
+    return nil, microerror.Maskf(clusterNotFound, "More than one Cluster found with name %s-%s", c.Name, clusterName)
   }
 
   return &objList.Items[0], nil
@@ -303,3 +307,4 @@ func (c *ManagementCluster) SetFinalizerOnNamespace() error {
 
   return nil
 }
+

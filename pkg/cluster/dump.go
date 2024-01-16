@@ -188,8 +188,6 @@ func (c *Cluster) DumpApps() error {
 
   }
 	
-  fmt.Printf("Scheduled %d non-default apps for migration\n", numberOfAppsToMigrate)
-
   if err := f.Close(); err != nil {
     return microerror.Mask(err)
   }

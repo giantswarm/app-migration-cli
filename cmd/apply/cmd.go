@@ -1,15 +1,16 @@
-package prepare
+package apply
 
 import (
-	//	"github.com/fatih/color"
+  "time"
+
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
 	"github.com/giantswarm/app-migration-cli/pkg/cluster"
-	"github.com/giantswarm/app-migration-cli/pkg/apps"
-
 	"github.com/giantswarm/microerror"
 	"github.com/giantswarm/micrologger"
+
+  "github.com/giantswarm/backoff"
 )
 
 var (
@@ -18,19 +19,18 @@ var (
 
 const (
   // CommandUse indicates the general syntax of the command
-  CommandUse = "prepare"
+  CommandUse = "apply"
 
   // CommandShort describes the command in a short list
-  CommandShort = "Run the first stage of an app migration"
+  CommandShort = "Run the second stage of an app migration"
 
   // CommandLong documents the command in full length
-  CommandLong = `In the preparation phase the apps and additional config will
-be written to disk and finalizers will protect the
-namespace from deletion by the capi-migration (enabled by default)
+  CommandLong = `In the apply phase the apps and additional config will
+be read from disk and applied to the newly created capi WC
 
 Run a migration from gauss to golem:
 
-  ./app-migration-cli prepare -s gauss -d golem -n wc1 -o org-foobar
+  ./app-migration-cli apply -f test25-apps.yaml -d golem -n wc1
   `
 )
 
@@ -71,11 +71,12 @@ func New(config Config) (*Command, error) {
     RunE:  newCommand.Execute,
   }
 
-  newCommand.mainCommand.Flags().StringVarP(&flags.srcMC, "source", "s", "", "Name of the source MC")
+  newCommand.mainCommand.Flags().StringVarP(&flags.sourceFile, "filename", "f", "", "File that contains the yaml-resources for migration")
   newCommand.mainCommand.Flags().StringVarP(&flags.dstMC, "destination", "d", "", "Name of the destination MC")
+  newCommand.mainCommand.Flags().StringVarP(&flags.srcMC, "source", "s", "", "Name of the source MC")
   newCommand.mainCommand.Flags().StringVarP(&flags.wcName, "wc-name", "n", "", "Name of the WC to migrate")
-  newCommand.mainCommand.Flags().StringVarP(&flags.orgNamespace, "org-name", "o", "", "Name of organization Namespace in capi, eg. org-foobar")
-  newCommand.mainCommand.Flags().BoolVarP(&flags.finalizer, "finalizer", "z", true, "Apply finalizers to the source namespace (Default: true). Setting this might result in the deletion of the ns during the infrastructre migration")
+  newCommand.mainCommand.Flags().StringVarP(&flags.orgNamespace, "org-namespace", "o", "", "Name of organization Namespace in capi, eg. org-foobar")
+  newCommand.mainCommand.Flags().BoolVarP(&flags.finalizer, "finalizer", "z", true, "Remove finalizers in the sourceMC (default: true). Setting this might result in leftover finalizers")
 
   return newCommand, nil
 }
@@ -102,6 +103,7 @@ func (c *Command) Execute(cmd *cobra.Command, args []string) error {
 }
 
 func (c *Command) execute() error {
+
   mcs, err := cluster.Login(flags.srcMC, flags.dstMC)
   if err != nil {
     return microerror.Mask(err)
@@ -109,24 +111,26 @@ func (c *Command) execute() error {
   mcs.WcName = flags.wcName
   mcs.SrcMC.Namespace = flags.wcName
   mcs.OrgNamespace = flags.orgNamespace
+  mcs.BackOff = backoff.NewMaxRetries(15, 3*time.Second)
+
+  //health, err := mcs.DstMC.GetWCHealth(mcs.WcName)
+  //if err != nil {
+  //  return microerror.Mask(err)
+  //}
+  //color.Green("Destination Cluster %s-%s status:", mcs.DstMC.Name, mcs.WcName, health)
+
+  err = mcs.ApplyCAPIApps()
+  if err != nil {
+    return microerror.Mask(err)
+  }
+  color.Green("Apps applied successfully to %s-%s", mcs.DstMC.Name, mcs.WcName)
 
   if flags.finalizer {
-    err = mcs.SrcMC.SetFinalizerOnNamespace()
+    mcs.SrcMC.RemoveFinalizerOnNamespace()
     if err != nil {
       return microerror.Mask(err)
     }
-    color.Yellow("Finalizer set on NS: %s-%s", mcs.SrcMC.Name, mcs.SrcMC.Namespace)
+    color.Yellow("Finalizer removed on NS: %s/%s", mcs.SrcMC.Name, mcs.SrcMC.Namespace)
   }
-
-  mcs.Apps, err = apps.GetAppCRs(mcs.SrcMC.KubernetesClient, mcs.WcName)
-  if err != nil {
-    return microerror.Mask(err)
-  }
-
-  err = mcs.DumpApps()
-  if err != nil {
-    return microerror.Mask(err)
-  }
-
   return nil
 }
