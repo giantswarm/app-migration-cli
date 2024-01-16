@@ -38,8 +38,12 @@ are scheduled after a successfull infrastructure migration.
 ❯❯❯ ./app-migration-cli prepare -s gaia     -d golem -n ulli30 -o org-ulli
 Connected to gs-gaia, k8s server version v1.24.17
 Connected to gs-golem, k8s server version v1.24.16
-Finalizer set on NS: gaia-ulli28
+Finalizer set on NS: gaia-ulli30
 Scheduled 1 non-default apps for migration
+
+# apps, cm, secrets written to disk in yaml; Namespace reorganization already included
+❯❯❯ ll ulli30-apps.yaml
+.rw-r-----  5.0k ull  16 Jan 10:53  ulli30-apps.yaml
 
 ❯❯❯ ./capi-migration-cli --mc-capi golem --mc-vintage gaia --cluster-namespace org-ulli --cluster-name ulli30
 [...]
