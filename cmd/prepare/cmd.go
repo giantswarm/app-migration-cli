@@ -74,8 +74,9 @@ func New(config Config) (*Command, error) {
   newCommand.mainCommand.Flags().StringVarP(&flags.srcMC, "source", "s", "", "Name of the source MC")
   newCommand.mainCommand.Flags().StringVarP(&flags.dstMC, "destination", "d", "", "Name of the destination MC")
   newCommand.mainCommand.Flags().StringVarP(&flags.wcName, "wc-name", "n", "", "Name of the WC to migrate")
-  newCommand.mainCommand.Flags().StringVarP(&flags.orgNamespace, "org-name", "o", "", "Name of organization Namespace in capi, eg. org-foobar")
-  newCommand.mainCommand.Flags().BoolVarP(&flags.finalizer, "finalizer", "z", true, "Apply finalizers to the source namespace (Default: true). Setting this might result in the deletion of the ns during the infrastructre migration")
+  newCommand.mainCommand.Flags().StringVarP(&flags.orgNamespace, "org-namespace", "o", "", "Namespace of organization in capi, eg. org-foobar")
+  newCommand.mainCommand.Flags().StringVarP(&flags.dumpFile, "output-file", "f", "", "Name of the file where the app/cm dump will be stored")
+  newCommand.mainCommand.Flags().BoolVarP(&flags.finalizer, "finalizer", "z", true, "Apply finalizers to the source namespace. Setting this might result in the deletion of the ns during the infrastructre migration")
 
   return newCommand, nil
 }
@@ -123,10 +124,12 @@ func (c *Command) execute() error {
     return microerror.Mask(err)
   }
 
-  err = mcs.DumpApps()
+  err = mcs.DumpApps(flags.dumpFile)
   if err != nil {
     return microerror.Mask(err)
   }
+
+  color.Green("Apps and config is dumped and migrated to disk: %s", mcs.AppYamlFile(flags.dumpFile))
 
   return nil
 }

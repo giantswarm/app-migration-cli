@@ -11,6 +11,7 @@ type Flags struct {
   wcName string
   finalizer bool
   orgNamespace string
+  dumpFile string
 }
 
 func (f *Flags) Validate() error {
