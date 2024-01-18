@@ -18,6 +18,8 @@ import (
 
 )
 
+// todo: refactor dumping to file somewhere else
+// todo: we need to create an empty file for the later apply step
 func (c *Cluster) DumpApps(filename string) error {
   // we write the apps to a yaml-file, which gets applied later
   f, err := os.OpenFile(c.AppYamlFile(filename), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0640)

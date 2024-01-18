@@ -26,7 +26,7 @@ func (c *Cluster) ApplyCAPIApps(filename string) error {
   }
   // Check if the file size is 0
   if fileInfo.Size() == 0 {
-    return microerror.Maskf(migrationFileCorrupted, "Migration File is empty. Nothing to migrate") 
+    return microerror.Maskf(MigrationFileEmpty, "Migration File is empty. Nothing to migrate") 
   }
 
   // waitloop til kubeconfig/default-cluster-values are found

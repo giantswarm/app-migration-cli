@@ -2,6 +2,7 @@ package apply
 
 import (
 	"time"
+  "errors"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -121,9 +122,19 @@ func (c *Command) execute() error {
 
   err = mcs.ApplyCAPIApps(flags.sourceFile)
   if err != nil {
+    if errors.Is(err, cluster.MigrationFileEmpty) {
+      color.Red("⚠  Warning")
+      color.Red("⚠  No apps targeted for migration")
+      color.Red("⚠  The given file was empty")
+      color.Red("⚠  Warning")
+
+      return nil
+    }
+
     return microerror.Mask(err)
   }
-  color.Green("Apps applied successfully to %s-%s", mcs.DstMC.Name, mcs.WcName)
+
+  color.Green("Apps (%d) applied successfully to %s-%s", len(mcs.Apps), mcs.DstMC.Name, mcs.WcName)
 
   if flags.finalizer {
     mcs.SrcMC.RemoveFinalizerOnNamespace()

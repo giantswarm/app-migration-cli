@@ -125,8 +125,8 @@ func (c *Command) execute() error {
   if err != nil {
     if errors.Is(err, apps.EmptyAppsError) {
       color.Red("⚠  Warning")
-      color.Red("⚠  No apps targeted for migration.")
-      color.Red("⚠  The migration will continue but no apps.application.giantswarm.io CRs will get transferred")
+      color.Red("⚠  No apps targeted for migration")
+      color.Red("⚠  The capi-migration will continue but no apps.application.giantswarm.io CRs will get transferred")
       color.Red("⚠  Warning")
 
       return nil
