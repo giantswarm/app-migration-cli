@@ -4,6 +4,6 @@ import (
   "github.com/giantswarm/microerror"
 )
 
-var emptyAppsError = &microerror.Error{
+var EmptyAppsError = &microerror.Error{
   Kind: "emptyAppsError",
 }

@@ -21,17 +21,14 @@ func GetAppCRs(k8sClient client.Client, clusterName string) ([]app.App, error) {
     return nil, microerror.Mask(err)
   }
 
-  filteredApps := filterAppCRs(objList.Items)
+  filteredApps, err := filterAppCRs(objList.Items)
 
-  if len(filteredApps) == 0 {
-    return nil, microerror.Maskf(emptyAppsError, "No non-default apps found for migration")
-  }
-
-  return filteredApps, nil
+  return filteredApps, err
 }
 
 // blacklist certain apps for migration
-func filterAppCRs(allApps []app.App) (filteredApps []app.App) {
+func filterAppCRs(allApps []app.App) ([]app.App, error) {
+  var filteredApps []app.App
   appLoop:
   for _,application := range allApps {
     // skip "default" apps; these should be installed by default on the MC
@@ -52,5 +49,9 @@ func filterAppCRs(allApps []app.App) (filteredApps []app.App) {
     filteredApps = append(filteredApps, application)
   }
 
-  return
+  if len(filteredApps) == 0 {
+    return nil, microerror.Maskf(EmptyAppsError, "No non-default apps found for migration")
+  }
+
+  return filteredApps, nil
 }
