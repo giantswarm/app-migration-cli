@@ -19,9 +19,6 @@ import (
 )
 
 func (c *Cluster) DumpApps(filename string) error {
-
-  var numberOfAppsToMigrate int
-
   // we write the apps to a yaml-file, which gets applied later
   f, err := os.OpenFile(c.AppYamlFile(filename), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0640)
 
@@ -29,25 +26,7 @@ func (c *Cluster) DumpApps(filename string) error {
     return microerror.Mask(err)
   }
 
-  appLoop:
   for _,application := range c.Apps {
-    // skip "default" apps; these should be installed by default on the MC
-    if application.Spec.Catalog == "default" {
-      continue
-    }
-
-    // skip bundled apps as we only migrate their parent
-    // todo: verify thats formally correct
-    labels := application.GetLabels()
-    for key := range labels {
-      if strings.Contains(key, "giantswarm.io/managed-by") {
-        // we skip this app completly
-        continue appLoop
-      }
-    }
-
-    numberOfAppsToMigrate += 1
-
     // 	DefaultingEnabled          bool
     // 	ExtraLabels                map[string]string
     // 	ExtraAnnotations           map[string]string

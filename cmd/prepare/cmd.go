@@ -1,6 +1,8 @@
 package prepare
 
 import (
+  "errors"
+
   //	"github.com/fatih/color"
   "github.com/fatih/color"
   "github.com/spf13/cobra"
@@ -121,6 +123,15 @@ func (c *Command) execute() error {
 
   mcs.Apps, err = apps.GetAppCRs(mcs.SrcMC.KubernetesClient, mcs.WcName)
   if err != nil {
+    if errors.Is(err, apps.EmptyAppsError) {
+      color.Red("⚠  Warning")
+      color.Red("⚠  No apps targeted for migration.")
+      color.Red("⚠  The migration will continue but no apps.application.giantswarm.io CRs will get transferred")
+      color.Red("⚠  Warning")
+
+      return nil
+    }
+
     return microerror.Mask(err)
   }
 
@@ -129,7 +140,7 @@ func (c *Command) execute() error {
     return microerror.Mask(err)
   }
 
-  color.Green("Apps and config is dumped and migrated to disk: %s", mcs.AppYamlFile(flags.dumpFile))
+  color.Green("Apps (%d) and config is dumped and migrated to disk: %s", len(mcs.Apps), mcs.AppYamlFile(flags.dumpFile))
 
   return nil
 }
