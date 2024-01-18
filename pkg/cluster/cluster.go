@@ -76,6 +76,16 @@ type AppExtraConfig struct {
   Yaml      []byte
 }
 
+func (c *Cluster) AppYamlFile(filename string) string {
+  wd, _ := os.Getwd()
+
+  if filename == "" {
+    filename = fmt.Sprintf("%s-%s-apps.yaml", c.SrcMC.Name, c.WcName)
+  }
+
+  return fmt.Sprintf("%s/%s", wd, filename)
+}
+
 // todo: access clusterName by *Cluster
 func (c *ManagementCluster) GetWCHealth(clusterName string) (string, error) {
 

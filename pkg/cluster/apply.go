@@ -18,9 +18,9 @@ import (
   "k8s.io/apimachinery/pkg/api/errors"
 )
 
-func (c *Cluster) ApplyCAPIApps() error {
+func (c *Cluster) ApplyCAPIApps(filename string) error {
   // we skip the app apply if the file is empty
-  fileInfo, err := os.Stat(nonDefaultAppYamlFile(c.WcName))
+  fileInfo, err := os.Stat(c.AppYamlFile(filename))
   if err != nil {
     return microerror.Mask(err)
   }
@@ -65,12 +65,12 @@ func (c *Cluster) ApplyCAPIApps() error {
   fmt.Printf("Applying all non-default APP CRs to MC\n")
   applyManifests := func() error {
     //nolint:gosec
-    c := exec.Command("kubectl", "--context", fmt.Sprintf("gs-%s", c.DstMC.Name), "apply", "-f", nonDefaultAppYamlFile(c.WcName))
+    e := exec.Command("kubectl", "--context", fmt.Sprintf("gs-%s", c.DstMC.Name), "apply", "-f", c.AppYamlFile(filename))
 
-    c.Stderr = os.Stderr
-    c.Stdin = os.Stdin
+    e.Stderr = os.Stderr
+    e.Stdin = os.Stdin
 
-    err := c.Run()
+    err := e.Run()
     if err != nil {
       return microerror.Mask(err)
     }

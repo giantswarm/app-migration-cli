@@ -3,6 +3,12 @@
 This tool migrates `apps` from one MC to another. It's closly coupled
 to the vintage -> capi [migration tool](https://github.com/giantswarm/capi-migration-cli).
 
+Running this script dumps `apps.application.giantswarm.io` Objects and their related config 
+(`configmap` and/or `secrets`) to disk. Mentioned config will be renamed and put 
+in a different namespace (capi way).
+
+In a second phase, these objects are reapplied to a new MC.
+
 > :warning: WIP
 
 ## :airplane: Rundown
@@ -34,7 +40,7 @@ are scheduled after a successfull infrastructure migration.
 
 ```
 ❯❯❯ export KUBECONFIG=$(mktemp)
-                                <sourceMC>  <destMC> <WC Name> <Org Name>
+                                <sourceMC>  <destMC> <WC Name> <Org Namespace>
 ❯❯❯ ./app-migration-cli prepare -s gaia     -d golem -n ulli30 -o org-ulli
 Connected to gs-gaia, k8s server version v1.24.17
 Connected to gs-golem, k8s server version v1.24.16

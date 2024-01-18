@@ -15,10 +15,6 @@ type Flags struct {
 }
 
 func (f *Flags) Validate() error {
-  if f.sourceFile == "" {
-    return microerror.Maskf(invalidFlagsError, "Filename must not be empty")
-  }
-
   if f.srcMC == "" {
     return microerror.Maskf(invalidFlagsError, "SourceMC must not be empty")
   }
