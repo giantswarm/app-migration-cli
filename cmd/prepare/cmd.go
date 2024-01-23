@@ -2,6 +2,7 @@ package prepare
 
 import (
   "errors"
+  "os"
 
   //	"github.com/fatih/color"
   "github.com/fatih/color"
@@ -113,6 +114,12 @@ func (c *Command) execute() error {
   mcs.SrcMC.Namespace = flags.wcName
   mcs.OrgNamespace = flags.orgNamespace
 
+  f, err := os.OpenFile(mcs.AppYamlFile(flags.dumpFile), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0640)
+  if err != nil {
+    return microerror.Mask(err)
+  }
+  defer f.Close()
+
   if flags.finalizer {
     err = mcs.SrcMC.SetFinalizerOnNamespace()
     if err != nil {
@@ -126,8 +133,12 @@ func (c *Command) execute() error {
     if errors.Is(err, apps.EmptyAppsError) {
       color.Red("⚠  Warning")
       color.Red("⚠  No apps targeted for migration")
-      color.Red("⚠  The capi-migration will continue but no apps.application.giantswarm.io CRs will get transferred")
+      color.Red("⚠  The capi-migration will continue but no apps.application.giantswarm.io CRs will be transferred")
       color.Red("⚠  Warning")
+
+      if err := f.Close(); err != nil {
+        return microerror.Mask(err)
+      }
 
       return nil
     }
@@ -135,12 +146,16 @@ func (c *Command) execute() error {
     return microerror.Mask(err)
   }
 
-  err = mcs.DumpApps(flags.dumpFile)
+  err = mcs.DumpApps(f)
   if err != nil {
     return microerror.Mask(err)
   }
 
   color.Green("Apps (%d) and config is dumped and migrated to disk: %s", len(mcs.Apps), mcs.AppYamlFile(flags.dumpFile))
+
+  if err := f.Close(); err != nil {
+    return microerror.Mask(err)
+  }
 
   return nil
 }

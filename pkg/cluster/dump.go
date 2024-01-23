@@ -20,13 +20,7 @@ import (
 
 // todo: refactor dumping to file somewhere else
 // todo: we need to create an empty file for the later apply step
-func (c *Cluster) DumpApps(filename string) error {
-  // we write the apps to a yaml-file, which gets applied later
-  f, err := os.OpenFile(c.AppYamlFile(filename), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0640)
-
-  if err != nil {
-    return microerror.Mask(err)
-  }
+func (c *Cluster) DumpApps(f *os.File) error {
 
   for _,application := range c.Apps {
     // 	DefaultingEnabled          bool
@@ -167,10 +161,6 @@ func (c *Cluster) DumpApps(filename string) error {
     if _, err := f.Write([]byte(fmt.Sprintf("%s---\n", appYAML))); err != nil {
       return microerror.Mask(err)
     }
-  }
-
-  if err := f.Close(); err != nil {
-    return microerror.Mask(err)
   }
 
   return nil
