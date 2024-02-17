@@ -16,8 +16,9 @@ type MyApp struct {
   Spec app.AppSpec `yaml:"spec"`
 }
 
+// TestDumpAppsNames tests the migration of the app names
 func TestDumpAppsNames(t *testing.T) {
-  var retApp MyApp
+  var migratedApp MyApp
   var apps []app.App
 
   appName := "loki"
@@ -48,17 +49,15 @@ func TestDumpAppsNames(t *testing.T) {
   }
 
   yamlText, _ := c.migrateApps()
-  yaml.Unmarshal(yamlText, &retApp)
+  yaml.Unmarshal(yamlText, &migratedApp)
 
-  if retApp.ObjectMeta.Name != fmt.Sprintf("%s-%s", wcName, appName) {
+  if migratedApp.ObjectMeta.Name != fmt.Sprintf("%s-%s", wcName, appName) {
     t.Fatalf(`App Metadata Name not correct; Is: %s; Want: %s`,
-        retApp.ObjectMeta.Name,
+        migratedApp.ObjectMeta.Name,
         fmt.Sprintf("%s-%s", wcName, appName))
   }
 
-  if retApp.Spec.Name != appName {
-    t.Fatalf(`App Spec Name not correct; Is: %s; Want: %s`, retApp.Spec.Name, appName)
+  if migratedApp.Spec.Name != appName {
+    t.Fatalf(`App Spec Name not correct; Is: %s; Want: %s`, migratedApp.Spec.Name, appName)
   }
  }
-
-
