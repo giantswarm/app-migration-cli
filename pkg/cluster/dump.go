@@ -18,14 +18,26 @@ import (
 
 )
 
-// todo: refactor dumping to file somewhere else
-// todo: we need to create an empty file for the later apply step
 func (c *Cluster) DumpApps(f *os.File) error {
+
+  yaml, err := c.migrateApps()
+  if err != nil {
+    return microerror.Mask(err)
+  }
+
+  if _, err := f.Write(yaml); err != nil {
+    return microerror.Mask(err)
+  }
+
+  return nil
+}
+
+func (c *Cluster) migrateApps() ([]byte, error) {
+
+  var yaml []byte
 
   for _,application := range c.Apps {
     // 	DefaultingEnabled          bool
-    // 	ExtraLabels                map[string]string
-    // 	ExtraAnnotations           map[string]string
     // 	UseClusterValuesConfig     bool
 
     // todo: app operator version; does it impact the migration?
@@ -44,7 +56,7 @@ func (c *Cluster) DumpApps(f *os.File) error {
     }
 
     // make sure we trim the clustername if it somehow was prefixed on the app
-    metadataName := strings.TrimLeft(application.GetName(), c.WcName)
+    metadataName := strings.TrimPrefix(application.GetName(), c.WcName)
     // now prefix our app with the cluster
     newApp.AppName = fmt.Sprintf("%s-%s", c.WcName, metadataName)
 
@@ -60,12 +72,12 @@ func (c *Cluster) DumpApps(f *os.File) error {
           c.SrcMC.KubernetesClient,
           strings.ToLower(extraConfig.Kind),
           c.WcName,
-          extraConfig.Name, 
-          extraConfig.Namespace, 
+          extraConfig.Name,
+          extraConfig.Namespace,
           newApp.Organization)
 
         if err != nil {
-          return microerror.Mask(err)
+          return nil, microerror.Mask(err)
         }
 
         newApp.ExtraConfigs = append(newApp.ExtraConfigs, applicationv1alpha1.AppExtraConfig{
@@ -75,9 +87,7 @@ func (c *Cluster) DumpApps(f *os.File) error {
           Priority: extraConfig.Priority,
         })
 
-        if _, err := f.Write([]byte(fmt.Sprintf("%s---\n", obj.Yaml))); err != nil {
-          return microerror.Mask(err)
-        }
+        yaml = append(yaml, []byte(fmt.Sprintf("%s---\n", obj.Yaml))...)
       }
     }
 
@@ -121,14 +131,12 @@ func (c *Cluster) DumpApps(f *os.File) error {
         newApp.Organization)
 
       if err != nil {
-        return microerror.Mask(err)
+        return nil, microerror.Mask(err)
       }
 
       newApp.UserConfigConfigMapName = configmap.Name
 
-      if _, err := f.Write([]byte(fmt.Sprintf("%s---\n", configmap.Yaml))); err != nil {
-        return microerror.Mask(err)
-      }
+      yaml = append(yaml, fmt.Sprintf("%s---\n", &configmap.Yaml)...)
     }
 
     if application.Spec.UserConfig.Secret.Name != "" {
@@ -143,27 +151,22 @@ func (c *Cluster) DumpApps(f *os.File) error {
         newApp.Organization)
 
       if err != nil {
-        return microerror.Mask(err)
+        return nil, microerror.Mask(err)
       }
 
       newApp.UserConfigSecretName = secret.Name
 
-      if _, err := f.Write([]byte(fmt.Sprintf("%s---\n", secret.Yaml))); err != nil {
-        return microerror.Mask(err)
-      }
+      yaml = append(yaml, fmt.Sprintf("%s---\n", &secret.Yaml)...)
     }
 
     appYAML, err := app.NewAppCR(newApp)
     if err != nil {
-      return microerror.Mask(err)
+      return nil, microerror.Mask(err)
     }
-
-    if _, err := f.Write([]byte(fmt.Sprintf("%s---\n", appYAML))); err != nil {
-      return microerror.Mask(err)
-    }
+    yaml = append(yaml, fmt.Sprintf("%s---\n", appYAML)...)
   }
 
-  return nil
+  return yaml, nil
 }
 
 func organizationFromNamespace(namespace string) string {
@@ -184,7 +187,7 @@ func migrateAppConfigObject(k8sClient client.Client, resourceKind string, cluste
   }
 
   // make sure we trim the clustername if it somehow was prefixed on the app
-  name := strings.TrimLeft(resourceName, clusterName)
+  name := strings.TrimPrefix(resourceName, clusterName)
   config.Name = fmt.Sprintf("%s-%s", clusterName, name)
 
 
