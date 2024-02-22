@@ -24,16 +24,18 @@ func (c *Cluster) DumpApps(f *os.File) error {
 		return microerror.Mask(err)
 	}
 
-	if _, err := f.Write(yaml); err != nil {
-		return microerror.Mask(err)
+	for _, obj := range yaml {
+		if _, err := f.Write([]byte(fmt.Sprintf("%s---\n", obj))); err != nil {
+			return microerror.Mask(err)
+		}
 	}
 
 	return nil
 }
 
-func (c *Cluster) migrateApps() ([]byte, error) {
+func (c *Cluster) migrateApps() ([][]byte, error) {
 
-	var yaml []byte
+	var yaml [][]byte
 
 	for _, application := range c.Apps {
 		// 	DefaultingEnabled          bool
@@ -55,11 +57,18 @@ func (c *Cluster) migrateApps() ([]byte, error) {
 		}
 
 		// make sure we trim the clustername if it somehow was prefixed on the app
-		metadataName := strings.TrimPrefix(application.GetName(), c.WcName)
-		// now prefix our app with the cluster
-		newApp.AppName = fmt.Sprintf("%s-%s", c.WcName, metadataName)
+		appName := strings.TrimPrefix(application.GetName(), c.WcName)
+		// in case we trimmed the clustername, we might need to trim the trailing dash
+		// now as well.
+		appName = strings.TrimPrefix(appName, "-")
+		// now prefix the app with the wcName
+		newApp.AppName = fmt.Sprintf("%s-%s", c.WcName, appName)
 
-		// todo: secret missing?
+		// apps on the MC should go to the org namespace
+		if application.Spec.KubeConfig.InCluster {
+			newApp.Namespace = c.OrgNamespace
+		}
+
 		if application.Spec.Config.ConfigMap.Name == fmt.Sprintf("%s-cluster-values", c.WcName) {
 			newApp.UseClusterValuesConfig = true
 		}
@@ -86,7 +95,7 @@ func (c *Cluster) migrateApps() ([]byte, error) {
 					Priority:  extraConfig.Priority,
 				})
 
-				yaml = append(yaml, []byte(fmt.Sprintf("%s---\n", obj.Yaml))...)
+				yaml = append(yaml, obj.Yaml)
 			}
 		}
 
@@ -114,11 +123,6 @@ func (c *Cluster) migrateApps() ([]byte, error) {
 			newApp.UpgradeTimeout = application.Spec.Upgrade.Timeout
 		}
 
-		// apps on the WC should go to the org namespace
-		if application.Spec.KubeConfig.InCluster == false {
-			newApp.Organization = organizationFromNamespace(c.OrgNamespace)
-		}
-
 		if application.Spec.UserConfig.ConfigMap.Name != "" {
 
 			configmap, err := migrateAppConfigObject(
@@ -135,7 +139,7 @@ func (c *Cluster) migrateApps() ([]byte, error) {
 
 			newApp.UserConfigConfigMapName = configmap.Name
 
-			yaml = append(yaml, fmt.Sprintf("%s---\n", configmap.Yaml)...)
+			yaml = append(yaml, configmap.Yaml)
 		}
 
 		if application.Spec.UserConfig.Secret.Name != "" {
@@ -155,14 +159,14 @@ func (c *Cluster) migrateApps() ([]byte, error) {
 
 			newApp.UserConfigSecretName = secret.Name
 
-			yaml = append(yaml, fmt.Sprintf("%s---\n", secret.Yaml)...)
+			yaml = append(yaml, secret.Yaml)
 		}
 
 		appYAML, err := app.NewAppCR(newApp)
 		if err != nil {
 			return nil, microerror.Mask(err)
 		}
-		yaml = append(yaml, fmt.Sprintf("%s---\n", appYAML)...)
+		yaml = append(yaml, appYAML)
 	}
 
 	return yaml, nil
@@ -187,6 +191,7 @@ func migrateAppConfigObject(k8sClient client.Client, resourceKind string, cluste
 
 	// make sure we trim the clustername if it somehow was prefixed on the app
 	name := strings.TrimPrefix(resourceName, clusterName)
+	name = strings.TrimPrefix(name, "-")
 	config.Name = fmt.Sprintf("%s-%s", clusterName, name)
 
 	switch resourceKind {
