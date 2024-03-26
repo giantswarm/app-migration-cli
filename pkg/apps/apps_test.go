@@ -48,3 +48,17 @@ func TestFilteringOfDefaultApps(t *testing.T) {
 		t.Fatalf("Apps from the `default` catalog should be filtered")
 	}
 }
+
+func TestFilteringOfNamedApps(t *testing.T) {
+	newApp := app.App{}
+	newApp.Spec.Name = "k8s-initiator-app"
+
+	appList := []app.App{
+		newApp,
+	}
+
+	_, err := filterAppCRs(appList)
+	if !errors.Is(err, EmptyAppsError) {
+		t.Fatalf("Apps named `%s` catalog should be filtered", newApp.Spec.Name)
+	}
+}
