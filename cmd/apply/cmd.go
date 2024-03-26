@@ -114,12 +114,6 @@ func (c *Command) execute() error {
 	mcs.OrgNamespace = flags.orgNamespace
 	mcs.BackOff = backoff.NewMaxRetries(15, 3*time.Second)
 
-	//health, err := mcs.DstMC.GetWCHealth(mcs.WcName)
-	//if err != nil {
-	//  return microerror.Mask(err)
-	//}
-	//color.Green("Destination Cluster %s-%s status:", mcs.DstMC.Name, mcs.WcName, health)
-
 	err = mcs.ApplyCAPIApps(flags.sourceFile)
 	if err != nil {
 		if errors.Is(err, cluster.MigrationFileEmpty) {
@@ -134,8 +128,6 @@ func (c *Command) execute() error {
 		return microerror.Mask(err)
 	}
 
-	color.Green("Apps (%d) applied successfully to %s-%s", len(mcs.Apps), mcs.DstMC.Name, mcs.WcName)
-
 	if flags.finalizer {
 		mcs.SrcMC.RemoveFinalizerOnNamespace()
 		if err != nil {
@@ -143,5 +135,6 @@ func (c *Command) execute() error {
 		}
 		color.Yellow("Finalizer removed on NS: %s/%s", mcs.SrcMC.Name, mcs.SrcMC.Namespace)
 	}
+
 	return nil
 }
