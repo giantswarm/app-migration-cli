@@ -1,112 +1,110 @@
 package cmd
 
 import (
+	"github.com/giantswarm/app-migration-cli/cmd/apply"
+	"github.com/giantswarm/app-migration-cli/cmd/preflight"
+	"github.com/giantswarm/app-migration-cli/cmd/prepare"
 
-  "github.com/giantswarm/app-migration-cli/cmd/preflight"
-  "github.com/giantswarm/app-migration-cli/cmd/prepare"
-  "github.com/giantswarm/app-migration-cli/cmd/apply"
-
-  "github.com/giantswarm/microerror"
-  "github.com/giantswarm/micrologger"
-  "github.com/spf13/cobra"
+	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/micrologger"
+	"github.com/spf13/cobra"
 )
 
 const (
-  // CommandUse indicates the general syntax of the command
-  CommandUse = "app-migration-cli"
+	// CommandUse indicates the general syntax of the command
+	CommandUse = "app-migration-cli"
 
-  // CommandShort describes the command in a short list
-  CommandShort = "A Giantswarm tool to migrate apps between MCs"
+	// CommandShort describes the command in a short list
+	CommandShort = "A Giantswarm tool to migrate apps between MCs"
 
-  // CommandLong documents the command in full length
-  CommandLong = `Migrate apps.application.giantswarm.io between two MCs`
+	// CommandLong documents the command in full length
+	CommandLong = `Migrate apps.application.giantswarm.io between two MCs`
 )
 
 // Config represents the configuration used to create a new root command.
 type Config struct {
-  // Dependencies.
-  Logger micrologger.Logger
+	// Dependencies.
+	Logger micrologger.Logger
 
-  // Settings.
+	// Settings.
 }
 
 type Command struct {
-  // Internals.
-  cobraCommand *cobra.Command
+	// Internals.
+	cobraCommand *cobra.Command
 
-  // Settings/Preferences
+	// Settings/Preferences
 }
 
 // New creates a new root command.
 func New(config Config) (*Command, error) {
-  var err error
+	var err error
 
-  newCommand := &Command{
-    // Internals.
-    cobraCommand: nil,
-  }
+	newCommand := &Command{
+		// Internals.
+		cobraCommand: nil,
+	}
 
-  newCommand.cobraCommand = &cobra.Command{
-    Use:               CommandUse,
-    Short:             CommandShort,
-    Long:              CommandLong,
-    RunE:              newCommand.Execute,
-  }
+	newCommand.cobraCommand = &cobra.Command{
+		Use:   CommandUse,
+		Short: CommandShort,
+		Long:  CommandLong,
+		RunE:  newCommand.Execute,
+	}
 
-  var preflightCommand *preflight.Command
-  {
-    c := preflight.Config{
-      MainCommand: newCommand.cobraCommand,
-      Logger: config.Logger,
-    }
+	var preflightCommand *preflight.Command
+	{
+		c := preflight.Config{
+			MainCommand: newCommand.cobraCommand,
+			Logger:      config.Logger,
+		}
 
-    preflightCommand, err = preflight.New(c)
-    if err != nil {
-      return nil, microerror.Mask(err)
-    }
-  }
+		preflightCommand, err = preflight.New(c)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+	}
 
-  var prepareCommand *prepare.Command
-  {
-    c := prepare.Config{
-      MainCommand: newCommand.cobraCommand,
-      Logger: config.Logger,
-    }
+	var prepareCommand *prepare.Command
+	{
+		c := prepare.Config{
+			MainCommand: newCommand.cobraCommand,
+			Logger:      config.Logger,
+		}
 
-    prepareCommand, err = prepare.New(c)
-    if err != nil {
-      return nil, microerror.Mask(err)
-    }
-  }
+		prepareCommand, err = prepare.New(c)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+	}
 
-  var applyCommand *apply.Command
-  {
-    c := apply.Config{
-      MainCommand: newCommand.cobraCommand,
-      Logger: config.Logger,
-    }
+	var applyCommand *apply.Command
+	{
+		c := apply.Config{
+			MainCommand: newCommand.cobraCommand,
+			Logger:      config.Logger,
+		}
 
-    applyCommand, err = apply.New(c)
-    if err != nil {
-      return nil, microerror.Mask(err)
-    }
-  }
+		applyCommand, err = apply.New(c)
+		if err != nil {
+			return nil, microerror.Mask(err)
+		}
+	}
 
+	newCommand.cobraCommand.AddCommand(preflightCommand.CobraCommand())
+	newCommand.cobraCommand.AddCommand(prepareCommand.CobraCommand())
+	newCommand.cobraCommand.AddCommand(applyCommand.CobraCommand())
 
-  newCommand.cobraCommand.AddCommand(preflightCommand.CobraCommand())
-  newCommand.cobraCommand.AddCommand(prepareCommand.CobraCommand())
-  newCommand.cobraCommand.AddCommand(applyCommand.CobraCommand())
-
-  return newCommand, nil
+	return newCommand, nil
 }
 
 // CobraCommand returns the spf13/cobra command
 func (c *Command) CobraCommand() *cobra.Command {
-  return c.cobraCommand
+	return c.cobraCommand
 }
 
 // Execute is called to actuall run the main command
 func (c *Command) Execute(cmd *cobra.Command, args []string) error {
-  cmd.HelpFunc()(cmd, nil)
-  return nil
+	cmd.HelpFunc()(cmd, nil)
+	return nil
 }

@@ -1,17 +1,17 @@
 package preflight
 
 import (
-  "github.com/giantswarm/microerror"
+	"github.com/giantswarm/microerror"
 )
 
 var invalidFlagsError = &microerror.Error{
-  Kind: "invalidFlagsError",
+	Kind: "invalidFlagsError",
 }
 
 var invalidConfigError = &microerror.Error{
-  Kind: "invalidConfigError",
+	Kind: "invalidConfigError",
 }
 
 var migrationBlocked = &microerror.Error{
-  Kind: "migrationBlocked",
+	Kind: "migrationBlocked",
 }
