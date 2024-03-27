@@ -5,13 +5,12 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/giantswarm/backoff"
+	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/micrologger"
 	"github.com/spf13/cobra"
 
 	"github.com/giantswarm/app-migration-cli/pkg/cluster"
-	"github.com/giantswarm/microerror"
-	"github.com/giantswarm/micrologger"
-
-	"github.com/giantswarm/backoff"
 )
 
 var (

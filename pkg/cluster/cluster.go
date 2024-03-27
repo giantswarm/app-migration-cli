@@ -7,25 +7,20 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/giantswarm/microerror"
-
+	apps "github.com/giantswarm/apiextensions-application/api/v1alpha1"
+	chart "github.com/giantswarm/apiextensions-application/api/v1alpha1"
+	gsv1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
 	"github.com/giantswarm/backoff"
+	"github.com/giantswarm/microerror"
 	"golang.org/x/net/context"
-	//  "k8s.io/api/core/v1"
-
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	"k8s.io/client-go/tools/clientcmd"
 	capi "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	gsv1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-
-	apps "github.com/giantswarm/apiextensions-application/api/v1alpha1"
-	chart "github.com/giantswarm/apiextensions-application/api/v1alpha1"
 )
 
 const finalizer string = "giantswarm.io/app-migration-cli"
