@@ -1,0 +1,9 @@
+linters-settings:
+  goconst:
+    # Ignore test files.
+    # Default: false
+    ignore-tests: true
+    # Minimum occurrences of constant string count to trigger issue.
+    # Default: 3
+    min-occurrences: 5
+

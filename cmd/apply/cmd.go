@@ -5,13 +5,12 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/giantswarm/backoff"
+	"github.com/giantswarm/microerror"
+	"github.com/giantswarm/micrologger"
 	"github.com/spf13/cobra"
 
 	"github.com/giantswarm/app-migration-cli/pkg/cluster"
-	"github.com/giantswarm/microerror"
-	"github.com/giantswarm/micrologger"
-
-	"github.com/giantswarm/backoff"
 )
 
 var (
@@ -129,7 +128,7 @@ func (c *Command) execute() error {
 	}
 
 	if flags.finalizer {
-		mcs.SrcMC.RemoveFinalizerOnNamespace()
+		err = mcs.SrcMC.RemoveFinalizerOnNamespace()
 		if err != nil {
 			return microerror.Mask(err)
 		}
