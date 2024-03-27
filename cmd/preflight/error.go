@@ -11,7 +11,3 @@ var invalidFlagsError = &microerror.Error{
 var invalidConfigError = &microerror.Error{
 	Kind: "invalidConfigError",
 }
-
-var migrationBlocked = &microerror.Error{
-	Kind: "migrationBlocked",
-}

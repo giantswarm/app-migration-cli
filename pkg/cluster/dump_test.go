@@ -46,7 +46,10 @@ func TestDumpAppsNames(t *testing.T) {
 	}
 
 	yamlText, _ := c.migrateApps()
-	yaml.Unmarshal(yamlText[0], &migratedApp)
+	err := yaml.Unmarshal(yamlText[0], &migratedApp)
+	if err != nil {
+		t.Fatalf(`Could not unmarshal yaml: %s`, err)
+	}
 
 	if migratedApp.ObjectMeta.Name != fmt.Sprintf("%s-%s", wcName, appName) {
 		t.Fatalf(`App Metadata Name not correct; Is: %s; Want: %s`,
@@ -93,7 +96,10 @@ func TestDumpAlreadyPrefixedAppName(t *testing.T) {
 	}
 
 	yamlText, _ := c.migrateApps()
-	yaml.Unmarshal(yamlText[0], &migratedApp)
+	err := yaml.Unmarshal(yamlText[0], &migratedApp)
+	if err != nil {
+		t.Fatalf(`Could not unmarshal yaml: %s`, err)
+	}
 
 	// The app name should be prefixed with the wcName
 	if migratedApp.ObjectMeta.Name != appName {
@@ -143,7 +149,10 @@ func TestDumpNamespaceMigrationOutOfCluster(t *testing.T) {
 	}
 
 	yamlText, _ := c.migrateApps()
-	yaml.Unmarshal(yamlText[0], &migratedApp)
+	err := yaml.Unmarshal(yamlText[0], &migratedApp)
+	if err != nil {
+		t.Fatalf(`Could not unmarshal yaml: %s`, err)
+	}
 
 	// The app should be placed in the org namespace
 	if migratedApp.ObjectMeta.Namespace != orgNamespace {
@@ -192,7 +201,10 @@ func TestDumpNamespaceMigrationInCluster(t *testing.T) {
 	}
 
 	yamlText, _ := c.migrateApps()
-	yaml.Unmarshal(yamlText[0], &migratedApp)
+	err := yaml.Unmarshal(yamlText[0], &migratedApp)
+	if err != nil {
+		t.Fatalf(`Could not unmarshal yaml: %s`, err)
+	}
 
 	// The app should be placed in the org namespace
 	if migratedApp.ObjectMeta.Namespace != orgNamespace {
@@ -259,8 +271,15 @@ func TestDumpUserConfigmapMigration(t *testing.T) {
 	}
 
 	yamlText, _ := c.migrateApps()
-	yaml.Unmarshal(yamlText[0], &migratedCm)
-	yaml.Unmarshal(yamlText[1], &migratedApp)
+	err := yaml.Unmarshal(yamlText[0], &migratedCm)
+	if err != nil {
+		t.Fatalf(`Could not unmarshal yaml: %s`, err)
+	}
+
+	err = yaml.Unmarshal(yamlText[1], &migratedApp)
+	if err != nil {
+		t.Fatalf(`Could not unmarshal yaml: %s`, err)
+	}
 
 	// The cm should be referrenced from the org namespace
 	if migratedApp.Spec.UserConfig.ConfigMap.Namespace != orgNamespace {
@@ -341,8 +360,15 @@ func TestExtraConfigSecretMigration(t *testing.T) {
 	}
 
 	yamlText, _ := c.migrateApps()
-	yaml.Unmarshal(yamlText[0], &migratedSecret)
-	yaml.Unmarshal(yamlText[1], &migratedApp)
+	err := yaml.Unmarshal(yamlText[0], &migratedSecret)
+	if err != nil {
+		t.Fatalf(`Could not unmarshal yaml: %s`, err)
+	}
+
+	err = yaml.Unmarshal(yamlText[1], &migratedApp)
+	if err != nil {
+		t.Fatalf(`Could not unmarshal yaml: %s`, err)
+	}
 
 	// ExtraConfig Priority should be preserved
 	if migratedApp.Spec.ExtraConfigs[0].Priority != 64 {

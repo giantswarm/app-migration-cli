@@ -130,7 +130,7 @@ func (c *Command) execute() error {
 	}
 
 	if flags.finalizer {
-		mcs.SrcMC.RemoveFinalizerOnNamespace()
+		err = mcs.SrcMC.RemoveFinalizerOnNamespace()
 		if err != nil {
 			return microerror.Mask(err)
 		}
