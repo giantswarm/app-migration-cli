@@ -20,5 +20,3 @@ app-migration-cli
 
 # Go workspace file
 go.work
-
-*.yaml
