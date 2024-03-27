@@ -14,4 +14,3 @@ workflows:
             # Trigger job also on git tag.
             tags:
               only: /^v.*/
-
