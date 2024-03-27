@@ -7,15 +7,12 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/giantswarm/backoff"
 	"github.com/giantswarm/microerror"
-
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	"github.com/fatih/color"
-
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func (c *Cluster) ApplyCAPIApps(filename string) error {
