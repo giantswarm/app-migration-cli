@@ -3,8 +3,8 @@
 This tool migrates `apps` from one MC to another. It's coupled
 to the vintage -> capi [migration tool](https://github.com/giantswarm/capi-migration-cli).
 
-Running this script dumps `apps.application.giantswarm.io` Objects and their related config 
-(`configmap` and/or `secrets`) to disk. Mentioned config will be renamed and put 
+Running this script dumps `apps.application.giantswarm.io` Objects and their related config
+(`configmap` and/or `secrets`) to disk. Mentioned config will be renamed and put
 in a different namespace (capi way).
 
 In a second stage, these objects are reapplied to a new MC.
@@ -61,6 +61,6 @@ Applying all non-default APP CRs to MC
 All non-default apps applied successfully.
 ```
 
-## Notes 
+## Notes
 * currently only working for vintage
 * currently only working for aws based clusters
