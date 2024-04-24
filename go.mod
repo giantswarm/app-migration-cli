@@ -7,7 +7,7 @@ require (
 	github.com/giantswarm/apiextensions-application v0.6.1
 	github.com/giantswarm/apiextensions/v6 v6.6.0
 	github.com/giantswarm/backoff v1.0.0
-	github.com/giantswarm/kubectl-gs/v2 v2.52.3
+	github.com/giantswarm/kubectl-gs/v2 v2.53.0
 	github.com/giantswarm/microerror v0.4.1
 	github.com/giantswarm/micrologger v1.1.1
 	github.com/spf13/cobra v1.8.0
