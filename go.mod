@@ -3,7 +3,7 @@ module github.com/giantswarm/app-migration-cli
 go 1.21
 
 require (
-	github.com/fatih/color v1.16.0
+	github.com/fatih/color v1.17.0
 	github.com/giantswarm/apiextensions-application v0.6.1
 	github.com/giantswarm/apiextensions/v6 v6.6.0
 	github.com/giantswarm/backoff v1.0.0
