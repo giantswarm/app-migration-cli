@@ -6,7 +6,7 @@ require (
 	github.com/fatih/color v1.17.0
 	github.com/giantswarm/apiextensions-application v0.6.1
 	github.com/giantswarm/apiextensions/v6 v6.6.0
-	github.com/giantswarm/backoff v1.0.0
+	github.com/giantswarm/backoff v1.0.1
 	github.com/giantswarm/kubectl-gs/v2 v2.55.0
 	github.com/giantswarm/microerror v0.4.1
 	github.com/giantswarm/micrologger v1.1.1
@@ -22,7 +22,7 @@ require (
 
 require (
 	github.com/blang/semver/v4 v4.0.0 // indirect
-	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
+	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/evanphx/json-patch v5.7.0+incompatible // indirect
