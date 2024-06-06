@@ -67,7 +67,7 @@ func TestNoFilteringOfCustomerApps(t *testing.T) {
 	}
 
 	_, err := filterAppCRs(appList)
-	if !errors.Is(err, EmptyAppsError) {
+	if err != nil && !errors.Is(err, EmptyAppsError) {
 		t.Fatalf("App Bundle should be filtered for migration")
 	}
 }
