@@ -39,8 +39,8 @@ appLoop:
 		// skip bundled apps as we only migrate their parent
 		// todo: verify thats formally correct
 		labels := application.GetLabels()
-		for key := range labels {
-			if strings.Contains(key, "giantswarm.io/managed-by") {
+		for key, value := range labels {
+			if strings.Contains(key, "giantswarm.io/managed-by") && (strings.Contains(value, "bundle") || strings.Contains(value, "operator")) {
 				// we skip this app completly
 				continue appLoop
 			}

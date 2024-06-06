@@ -19,7 +19,62 @@ func TestFilterAppCRsEmptyReturn(t *testing.T) {
 
 func TestFilteringOfBundledApps(t *testing.T) {
 	appLabels := map[string]string{}
-	appLabels["giantswarm.io/managed-by"] = ""
+	appLabels["giantswarm.io/managed-by"] = "testc-observavility-bundle"
+
+	newApp := app.App{}
+
+	newApp.Labels = appLabels
+
+	appList := []app.App{
+		newApp,
+	}
+
+	_, err := filterAppCRs(appList)
+	if !errors.Is(err, EmptyAppsError) {
+		t.Fatalf("App Bundle should be filtered for migration")
+	}
+}
+
+func TestFilteringOfBundledSecurityApps(t *testing.T) {
+	appLabels := map[string]string{}
+	appLabels["app.kubernetes.io/name"] = "security-bundle"
+	appLabels["giantswarm.io/managed-by"] = "cluster-operator"
+
+	newApp := app.App{}
+
+	newApp.Labels = appLabels
+
+	appList := []app.App{
+		newApp,
+	}
+
+	_, err := filterAppCRs(appList)
+	if !errors.Is(err, EmptyAppsError) {
+		t.Fatalf("App Bundle should be filtered for migration")
+	}
+}
+
+func TestNoFilteringOfCustomerApps(t *testing.T) {
+	appLabels := map[string]string{}
+	appLabels["giantswarm.io/managed-by"] = "customer"
+
+	newApp := app.App{}
+
+	newApp.Labels = appLabels
+
+	appList := []app.App{
+		newApp,
+	}
+
+	_, err := filterAppCRs(appList)
+	if err != nil && !errors.Is(err, EmptyAppsError) {
+		t.Fatalf("App Bundle should be filtered for migration")
+	}
+}
+
+func TestFilteringOfAppOperatorApps(t *testing.T) {
+	appLabels := map[string]string{}
+	appLabels["giantswarm.io/managed-by"] = "app-operator"
 
 	newApp := app.App{}
 
