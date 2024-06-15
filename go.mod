@@ -10,7 +10,7 @@ require (
 	github.com/giantswarm/kubectl-gs/v2 v2.56.0
 	github.com/giantswarm/microerror v0.4.1
 	github.com/giantswarm/micrologger v1.1.1
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	golang.org/x/net v0.26.0
 	k8s.io/api v0.29.1
 	k8s.io/apimachinery v0.29.1
