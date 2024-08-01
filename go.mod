@@ -14,9 +14,9 @@ require (
 	github.com/giantswarm/micrologger v1.1.1
 	github.com/spf13/cobra v1.8.1
 	golang.org/x/net v0.27.0
-	k8s.io/api v0.30.2
-	k8s.io/apimachinery v0.30.2
-	k8s.io/client-go v0.30.2
+	k8s.io/api v0.30.3
+	k8s.io/apimachinery v0.30.3
+	k8s.io/client-go v0.30.3
 	sigs.k8s.io/cluster-api v1.6.1
 	sigs.k8s.io/controller-runtime v0.18.4
 	sigs.k8s.io/yaml v1.4.0
