@@ -2,7 +2,7 @@ module github.com/giantswarm/app-migration-cli
 
 go 1.22.0
 
-toolchain go1.23.0
+toolchain go1.23.1
 
 require (
 	github.com/fatih/color v1.17.0
