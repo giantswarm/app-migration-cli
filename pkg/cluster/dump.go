@@ -33,6 +33,16 @@ func (c *Cluster) DumpApps(f *os.File) error {
 	return nil
 }
 
+func (c *Cluster) shouldSkipConfigMapOrSecretMigration(configMapOrSecretName string) bool {
+	// Do not copy cluster values config map / secret to CAPI MC. A new one
+	// on the CAPI MC should automatically be created by cluster-apps-operator,
+	// using new values (e.g. different `baseDomain` from vintage).
+	// Copying it would result in cluster-apps-operator not reconciling it.
+	// In the `app-migration-cli apply` subcommand, we even wait for the new
+	// config map / secret to be available in order to allow Apps to deploy correctly.
+	return configMapOrSecretName == fmt.Sprintf("%s-cluster-values", c.WcName)
+}
+
 func (c *Cluster) migrateApps() ([][]byte, error) {
 
 	var yaml [][]byte
@@ -74,8 +84,11 @@ func (c *Cluster) migrateApps() ([][]byte, error) {
 		}
 
 		if application.Spec.ExtraConfigs != nil {
-
 			for _, extraConfig := range application.Spec.ExtraConfigs {
+				if (strings.ToLower(extraConfig.Kind) == "configmap" || strings.ToLower(extraConfig.Kind) == "secret") && c.shouldSkipConfigMapOrSecretMigration(extraConfig.Name) {
+					continue
+				}
+
 				obj, err := migrateAppConfigObject(
 					c.SrcMC.KubernetesClient,
 					strings.ToLower(extraConfig.Kind),
@@ -123,8 +136,7 @@ func (c *Cluster) migrateApps() ([][]byte, error) {
 			newApp.UpgradeTimeout = application.Spec.Upgrade.Timeout
 		}
 
-		if application.Spec.UserConfig.ConfigMap.Name != "" {
-
+		if application.Spec.UserConfig.ConfigMap.Name != "" && !c.shouldSkipConfigMapOrSecretMigration(application.Spec.UserConfig.ConfigMap.Name) {
 			configmap, err := migrateAppConfigObject(
 				c.SrcMC.KubernetesClient,
 				"configmap",
@@ -142,7 +154,7 @@ func (c *Cluster) migrateApps() ([][]byte, error) {
 			yaml = append(yaml, configmap.Yaml)
 		}
 
-		if application.Spec.UserConfig.Secret.Name != "" {
+		if application.Spec.UserConfig.Secret.Name != "" && !c.shouldSkipConfigMapOrSecretMigration(application.Spec.UserConfig.Secret.Name) {
 			newApp.UserConfigSecretName = application.Spec.UserConfig.Secret.Name
 
 			secret, err := migrateAppConfigObject(

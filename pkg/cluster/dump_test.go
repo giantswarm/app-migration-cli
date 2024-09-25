@@ -40,15 +40,46 @@ func TestDumpAppsNames(t *testing.T) {
 					KubeConfig: app.AppSpecKubeConfig{
 						InCluster: false,
 					},
+
+					// Try multiple ways of specifying `<WC>-cluster-values` config map / secret.
+					// None of those objects should be output to the YAML manifest, as
+					// cluster-apps-operator creates them on the destination (= CAPI) MC.
+					// The objects could be referenced in the `App` manifest by a human or by an
+					// admission controller - it doesn't matter.
+					Config: app.AppSpecConfig{
+						ConfigMap: app.AppSpecConfigConfigMap{
+							Name:      fmt.Sprintf("%s-cluster-values", wcName),
+							Namespace: "org-capa-migration-testing",
+						},
+						Secret: app.AppSpecConfigSecret{
+							Name:      fmt.Sprintf("%s-cluster-values", wcName),
+							Namespace: "org-capa-migration-testing",
+						},
+					},
+					ExtraConfigs: []app.AppExtraConfig{
+						{
+							Kind:      "ConfigMap",
+							Name:      fmt.Sprintf("%s-cluster-values", wcName),
+							Namespace: "org-capa-migration-testing",
+						},
+						{
+							Kind:      "Secret",
+							Name:      fmt.Sprintf("%s-cluster-values", wcName),
+							Namespace: "org-capa-migration-testing",
+						},
+					},
 				},
 			},
 		},
 	}
 
 	yamlText, _ := c.migrateApps()
-	err := yaml.Unmarshal(yamlText[0], &migratedApp)
+	err := yaml.UnmarshalStrict(yamlText[0], &migratedApp)
 	if err != nil {
 		t.Fatalf(`Could not unmarshal yaml: %s`, err)
+	}
+	if len(yamlText) != 1 {
+		t.Fatal("Only one App object should be output, not any <WC>-cluster-values config maps")
 	}
 
 	if migratedApp.ObjectMeta.Name != fmt.Sprintf("%s-%s", wcName, appName) {

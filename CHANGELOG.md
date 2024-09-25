@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Do not migrate `<WC>-cluster-values` config map or secret from vintage to CAPI MC since then cluster-app-operator cannot create those objects with the new values
+
 ## [0.2.0] - 2024-08-07
 
 ### Changed
