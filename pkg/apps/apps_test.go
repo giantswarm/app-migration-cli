@@ -105,15 +105,20 @@ func TestFilteringOfDefaultApps(t *testing.T) {
 }
 
 func TestFilteringOfNamedApps(t *testing.T) {
-	newApp := app.App{}
-	newApp.Spec.Name = "k8s-initiator-app"
+	for _, appNameToFilter := range []string{
+		"k8s-initiator-app",
+		"k8s-initiator-app-cgroupsv1",
+	} {
+		newApp := app.App{}
+		newApp.Spec.Name = appNameToFilter
 
-	appList := []app.App{
-		newApp,
-	}
+		appList := []app.App{
+			newApp,
+		}
 
-	_, err := filterAppCRs(appList)
-	if !errors.Is(err, EmptyAppsError) {
-		t.Fatalf("Apps named `%s` catalog should be filtered", newApp.Spec.Name)
+		_, err := filterAppCRs(appList)
+		if !errors.Is(err, EmptyAppsError) {
+			t.Fatalf("Apps named `%s` catalog should be filtered", newApp.Spec.Name)
+		}
 	}
 }

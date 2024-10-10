@@ -2,6 +2,7 @@ package apps
 
 import (
 	"context"
+	"slices"
 	"strings"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,7 +48,10 @@ appLoop:
 		}
 
 		// skip specific apps that are no longer supported on CAPI
-		if application.Spec.Name == "k8s-initiator-app" {
+		if slices.Contains([]string{
+			"k8s-initiator-app",
+			"k8s-initiator-app-cgroupsv1",
+		}, application.Spec.Name) {
 			continue
 		}
 
