@@ -11,7 +11,7 @@ require (
 	github.com/giantswarm/backoff v1.0.1
 	github.com/giantswarm/kubectl-gs/v2 v2.57.0
 	github.com/giantswarm/microerror v0.4.1
-	github.com/giantswarm/micrologger v1.1.1
+	github.com/giantswarm/micrologger v1.1.2
 	github.com/spf13/cobra v1.8.1
 	golang.org/x/net v0.34.0
 	k8s.io/api v0.32.0
