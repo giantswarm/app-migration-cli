@@ -114,11 +114,11 @@ func (c *Command) execute() error {
 	mcs.SrcMC.Namespace = flags.wcName
 	mcs.OrgNamespace = flags.orgNamespace
 
-	f, err := os.OpenFile(mcs.AppYamlFile(flags.dumpFile), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0640)
+	f, err := os.OpenFile(mcs.AppYamlFile(flags.dumpFile), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return microerror.Mask(err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	if flags.finalizer {
 		err = mcs.SrcMC.SetFinalizerOnNamespace()

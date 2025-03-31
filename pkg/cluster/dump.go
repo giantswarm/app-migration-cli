@@ -17,6 +17,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	configmapType = "configmap"
+	secretType    = "secret"
+)
+
 func (c *Cluster) DumpApps(f *os.File) error {
 
 	yaml, err := c.migrateApps()
@@ -25,7 +30,7 @@ func (c *Cluster) DumpApps(f *os.File) error {
 	}
 
 	for _, obj := range yaml {
-		if _, err := f.Write([]byte(fmt.Sprintf("%s---\n", obj))); err != nil {
+		if _, err := fmt.Fprintf(f, "%s---\n", obj); err != nil {
 			return microerror.Mask(err)
 		}
 	}
@@ -54,7 +59,7 @@ func (c *Cluster) migrateApps() ([][]byte, error) {
 		// todo: app operator version; does it impact the migration?
 		// todo: how to deal with ExtraLabels and Extrannotations?
 		newApp := app.Config{
-			AppName:          application.ObjectMeta.Name,
+			AppName:          application.Name,
 			Catalog:          application.Spec.Catalog,
 			Cluster:          c.WcName,
 			InCluster:        application.Spec.KubeConfig.InCluster,
@@ -85,7 +90,7 @@ func (c *Cluster) migrateApps() ([][]byte, error) {
 
 		if application.Spec.ExtraConfigs != nil {
 			for _, extraConfig := range application.Spec.ExtraConfigs {
-				if (strings.ToLower(extraConfig.Kind) == "configmap" || strings.ToLower(extraConfig.Kind) == "secret") && c.shouldSkipConfigMapOrSecretMigration(extraConfig.Name) {
+				if (strings.ToLower(extraConfig.Kind) == configmapType || strings.ToLower(extraConfig.Kind) == secretType) && c.shouldSkipConfigMapOrSecretMigration(extraConfig.Name) {
 					continue
 				}
 
@@ -139,7 +144,7 @@ func (c *Cluster) migrateApps() ([][]byte, error) {
 		if application.Spec.UserConfig.ConfigMap.Name != "" && !c.shouldSkipConfigMapOrSecretMigration(application.Spec.UserConfig.ConfigMap.Name) {
 			configmap, err := migrateAppConfigObject(
 				c.SrcMC.KubernetesClient,
-				"configmap",
+				configmapType,
 				c.WcName,
 				application.Spec.UserConfig.ConfigMap.Name,
 				application.Spec.UserConfig.ConfigMap.Namespace,
@@ -159,7 +164,7 @@ func (c *Cluster) migrateApps() ([][]byte, error) {
 
 			secret, err := migrateAppConfigObject(
 				c.SrcMC.KubernetesClient,
-				"secret",
+				secretType,
 				c.WcName,
 				application.Spec.UserConfig.Secret.Name,
 				application.Spec.UserConfig.Secret.Namespace,
@@ -207,9 +212,9 @@ func migrateAppConfigObject(k8sClient client.Client, resourceKind string, cluste
 	config.Name = fmt.Sprintf("%s-%s", clusterName, name)
 
 	switch resourceKind {
-	case "secret":
+	case secretType:
 		var secret corev1.Secret
-		config.Kind = "secret"
+		config.Kind = secretType
 
 		err := k8sClient.Get(context.TODO(), client.ObjectKey{
 			Name:      resourceName,
@@ -239,9 +244,9 @@ func migrateAppConfigObject(k8sClient client.Client, resourceKind string, cluste
 			return AppExtraConfig{}, microerror.Mask(err)
 		}
 
-	case "configmap":
+	case configmapType:
 		var cm corev1.ConfigMap
-		config.Kind = "configMap"
+		config.Kind = configmapType
 
 		err := k8sClient.Get(context.TODO(), client.ObjectKey{
 			Name:      resourceName,
