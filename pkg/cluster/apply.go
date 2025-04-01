@@ -28,25 +28,25 @@ func (c *Cluster) ApplyCAPIApps(filename string) error {
 
 	// waitloop til kubeconfig/default-cluster-values are found
 	for {
-		cmClusterValuesExists, err := checkIfObjectExists(c.DstMC.KubernetesClient, c.OrgNamespace, fmt.Sprintf("%s-cluster-values", c.WcName), "configmap")
+		cmClusterValuesExists, err := checkIfObjectExists(c.DstMC.KubernetesClient, c.OrgNamespace, fmt.Sprintf("%s-cluster-values", c.WcName), configmapType)
 		if err != nil {
-			fmt.Printf("Error checking existence of %s/%s-cluster-values: %s\n", "configmap", c.WcName, err)
+			fmt.Printf("Error checking existence of %s/%s-cluster-values: %s\n", configmapType, c.WcName, err)
 			time.Sleep(time.Second * 5)
 			continue
 		}
 
 		if cmClusterValuesExists {
-			secretClusterValuesExists, err := checkIfObjectExists(c.DstMC.KubernetesClient, c.OrgNamespace, fmt.Sprintf("%s-cluster-values", c.WcName), "secret")
+			secretClusterValuesExists, err := checkIfObjectExists(c.DstMC.KubernetesClient, c.OrgNamespace, fmt.Sprintf("%s-cluster-values", c.WcName), secretType)
 			if err != nil {
-				fmt.Printf("Error checking existence of %s/%s-cluster-values: %s\n", "secret", c.WcName, err)
+				fmt.Printf("Error checking existence of %s/%s-cluster-values: %s\n", secretType, c.WcName, err)
 				time.Sleep(time.Second * 5)
 				continue
 			}
 
 			if secretClusterValuesExists {
-				kubeconfigExists, err := checkIfObjectExists(c.DstMC.KubernetesClient, c.OrgNamespace, fmt.Sprintf("%s-kubeconfig", c.WcName), "secret")
+				kubeconfigExists, err := checkIfObjectExists(c.DstMC.KubernetesClient, c.OrgNamespace, fmt.Sprintf("%s-kubeconfig", c.WcName), secretType)
 				if err != nil {
-					fmt.Printf("Error checking existence of %s/%s-kubeconfig: %s\n", "secret", c.WcName, err)
+					fmt.Printf("Error checking existence of %s/%s-kubeconfig: %s\n", secretType, c.WcName, err)
 					time.Sleep(time.Second * 5)
 					continue
 				}
@@ -84,7 +84,7 @@ func (c *Cluster) ApplyCAPIApps(filename string) error {
 
 func checkIfObjectExists(k8s client.Client, nameSpace string, name string, resourceKind string) (bool, error) {
 	switch resourceKind {
-	case "secret":
+	case secretType:
 		var secret v1.Secret
 		err := k8s.Get(context.TODO(), client.ObjectKey{
 			Name:      name,
@@ -100,7 +100,7 @@ func checkIfObjectExists(k8s client.Client, nameSpace string, name string, resou
 		}
 		return true, nil
 
-	case "configmap":
+	case configmapType:
 		var cm v1.ConfigMap
 		err := k8s.Get(context.TODO(), client.ObjectKey{
 			Name:      name,

@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	apps "github.com/giantswarm/apiextensions-application/api/v1alpha1"
-	chart "github.com/giantswarm/apiextensions-application/api/v1alpha1"
 	gsv1alpha3 "github.com/giantswarm/apiextensions/v6/pkg/apis/infrastructure/v1alpha3"
 	"github.com/giantswarm/backoff"
 	"github.com/giantswarm/microerror"
@@ -42,7 +41,7 @@ func init() {
 	_ = capi.AddToScheme(scheme)
 	_ = gsv1alpha3.AddToScheme(scheme)
 	//	_ = kubeadmv1beta1.AddToScheme(scheme)
-	_ = chart.AddToScheme(scheme)
+	_ = apps.AddToScheme(scheme)
 }
 
 type Cluster struct {
@@ -242,7 +241,7 @@ func getK8sClientFromKubeconfig(contextName string) (client.Client, kubernetes.I
 // LoginIntoCluster will login into cluster by executing opsctl login command
 func loginIntoCLuster(cluster []string) error {
 	args := append([]string{"login", "--no-cache"}, cluster...)
-	c := exec.Command("opsctl", args...)
+	c := exec.Command("opsctl", args...) //nolint:gosec
 
 	c.Stderr = os.Stderr
 	c.Stdin = os.Stdin
